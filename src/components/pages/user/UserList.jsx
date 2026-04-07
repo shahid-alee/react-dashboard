@@ -1,99 +1,139 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Layout from "../../layout/Layout";
+import axios from "axios";
 
 function User() {
-    const users = [
-        { id: 1, name: "Zeeshan Khan", email: "zeeshan@example.com", role: "Admin" },
-        { id: 2, name: "Ayesha Ahmed", email: "ayesha@example.com", role: "User" },
-        { id: 3, name: "Bilal Malik", email: "bilal@example.com", role: "Editor" },
-        { id: 4, name: "Sana Gul", email: "sana@example.com", role: "User" },
-        { id: 5, name: "Omar Farooq", email: "omar@example.com", role: "Admin" },
-        { id: 6, name: "Hina Riaz", email: "hina@example.com", role: "User" },
-        { id: 7, name: "Usman Ali", email: "usman@example.com", role: "Moderator" },
-        { id: 8, name: "Mariam Jilani", email: "mariam@example.com", role: "User" },
-        { id: 9, name: "Hamza Sheikh", email: "hamza@example.com", role: "Admin" },
-        { id: 10, name: "Fatima Noor", email: "fatima@example.com", role: "User" },
-    ];
+  const [users, setUsers] = useState([]);
+  const [pagination, setPagination] = useState({});
+  const [currentPage, setCurrentPage] = useState(1);
 
-    const handleDelete = (e) => {
-        e.preventDefault();
-        if (window.confirm("Are you sure you want to delete this user?")) {
-            console.log("Deleted");
-        }
-    };
 
-    return (
-        <Layout>
-            <div className="main-panel">
-                <div className="content-wrapper">
-                    <div className="row">
-                        <div className="col-lg-12 grid-margin stretch-card">
-                            <div className="card">
-                                <div className="card-body">
-                                    <div className="d-flex justify-content-between align-items-center mb-3">
-                                        <h4 className="card-title">Users Table</h4>
-                                        <a href="#" className="btn btn-primary btn-rounded btn-fw">
-                                            Add New User
-                                        </a>
-                                    </div>
+  const fetchUsers = (page = 1) => {
+    setCurrentPage(page);
 
-                                    <div className="table-responsive">
-                                        <table className="table table-striped">
-                                            <thead>
-                                                <tr>
-                                                    <th>ID</th>
-                                                    <th>Name</th>
-                                                    <th>Email</th>
-                                                    <th>Role</th>
-                                                    <th>Actions</th>
-                                                </tr>
-                                            </thead>
+    axios
+      .get(`http://127.0.0.1:8000/api/users?page=${page}`)
+      .then((res) => {
+        setUsers(res.data.data);      // Users array
+        setPagination(res.data);      // Pagination info
+      })
+      .catch((err) => console.error("Error fetching users:", err));
+  };
 
-                                            <tbody>
-                                                {users.map((user) => (
-                                                    <tr key={user.id}>
-                                                        <td>{user.id}</td>
-                                                        <td>{user.name}</td>
-                                                        <td>{user.email}</td>
-                                                        <td>{user.role}</td>
-                                                        <td>
-                                                            <a href={`/edit/${user.id}`} style={{ marginRight: "5px" }}>
-                                                                <button type="button" className="btn btn-info btn-rounded btn-sm">
-                                                                    EDIT
-                                                                </button>
-                                                            </a>
+  const handleDelete = (id) => {
+    if (window.confirm("Are you sure you want to delete this user?")) {
+      axios
+        .delete(`http://127.0.0.1:8000/api/users/${id}`)
+        .then(() => {
+          alert("User deleted successfully");
+          fetchUsers(currentPage); // Refresh table after delete
+        })
+        .catch((err) => console.error(err));
+    }
+  };
 
-                                                            <form style={{ display: "inline" }} onSubmit={handleDelete}>
-                                                                <button type="submit" className="btn btn-danger btn-rounded btn-sm">
-                                                                    Delete
-                                                                </button>
-                                                            </form>
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
+  // Load users on mount
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
-                                    <div className="mt-4 d-flex justify-content-end">
-                                        {/* Placeholder for Pagination */}
-                                        <nav>
-                                            <ul className="pagination">
-                                                <li className="page-item"><a className="page-link" href="#">Previous</a></li>
-                                                <li className="page-item active"><a className="page-link" href="#">1</a></li>
-                                                <li className="page-item"><a className="page-link" href="#">Next</a></li>
-                                            </ul>
-                                        </nav>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+  return (
+    <Layout>
+      <div className="content-wrapper">
+        <div className="card">
+          <div className="card-body">
+            <div className="d-flex justify-content-between mb-3">
+              <h4>Users Table</h4>
+              <a href="/add-user" className="btn btn-primary">
+                Add User
+              </a>
             </div>
-        </Layout>
-        
-    );
+
+            <div className="table-responsive">
+              <table className="table table-striped">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Profile & Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {users.length > 0 ? (
+                    users.map((user) => (
+                      <tr key={user.id}>
+                        <td>{user.id}</td>
+                        <td>
+                          {user.profile_image && (
+                            <img
+                              src={`http://127.0.0.1:8000/images/users/${user.profile_image}`}
+                              alt={user.name}
+                              width="40"
+                              height="40"
+                              style={{ borderRadius: "50%", marginRight: "10px" }}
+                            />
+                          )}
+                          {user.name}
+                        </td>
+                        <td>{user.email}</td>
+                        <td>{user.role}</td>
+                        <td>
+                          <a
+                            href={`/users/${user.id}`}
+                            className="btn btn-info btn-sm me-2"
+                          >
+                            Edit
+                          </a>
+                          <button
+                            className="btn btn-danger btn-sm"
+                            onClick={() => handleDelete(user.id)}
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="5" style={{ textAlign: "center" }}>
+                        No Users Found
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination */}
+            <div className="mt-3 d-flex justify-content-between align-items-center">
+              <button
+                className="btn btn-secondary"
+                disabled={!pagination.prev_page_url}
+                onClick={() => fetchUsers(currentPage - 1)}
+              >
+                Previous
+              </button>
+
+              <span>
+                Page {pagination.current_page || 1} of {pagination.last_page || 1}
+              </span>
+
+              <button
+                className="btn btn-secondary"
+                disabled={!pagination.next_page_url}
+                onClick={() => fetchUsers(currentPage + 1)}
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Layout>
+  );
 }
 
 export default User;

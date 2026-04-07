@@ -1,14 +1,41 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Layout from "../../layout/Layout";
-import axios from "axios"; // Import Axios
+import axios from "axios";
+import { useParams, useNavigate } from "react-router-dom";
 
-function AddUser() {
+function EditUser() {
+  const { id } = useParams(); 
+  const navigate = useNavigate(); 
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
     role: "user",
   });
+
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (id) {
+      setLoading(true);
+      axios
+        .get(`http://127.0.0.1:8000/api/users/${id}`)
+        .then((res) => {
+          const user = res.data;
+          setFormData({
+            name: user.name,
+            email: user.email,
+            password: "", 
+            role: user.role,
+          });
+        })
+        .catch((err) => {
+          console.error(err);
+          alert("Failed to fetch user data.");
+        })
+        .finally(() => setLoading(false));
+    }
+  }, [id]);
 
   const handleChange = (e) => {
     setFormData({
@@ -18,35 +45,34 @@ function AddUser() {
   };
 
   const handleSubmit = (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  axios
-    .post("http://127.0.0.1:8000/api/users/store", formData)
-    .then((res) => {
-      alert("User Added Successfully");
-      setFormData({
-        name: "",
-        email: "",
-        password: "",
-        role: "user",
-      });
-      console.log(res.data);
-    })
-    .catch((err) => {
-      if (err.response) {
-        if (err.response.status === 422) {
-          const errors = err.response.data.errors;
-          const messages = Object.values(errors).flat(); // Flatten all error messages
-          alert("Validation Error:\n" + messages.join("\n"));
+    const request = id
+      ? axios.put(`http://127.0.0.1:8000/api/users/${id}`, formData)
+      : axios.post("http://127.0.0.1:8000/api/users/store", formData);
+
+    request
+      .then((res) => {
+        alert(id ? "User Updated Successfully" : "User Added Successfully");
+        navigate("/users"); // Redirect to user list
+      })
+      .catch((err) => {
+        if (err.response) {
+          if (err.response.status === 422) {
+            const errors = err.response.data.errors;
+            const messages = Object.values(errors).flat();
+            alert("Validation Error:\n" + messages.join("\n"));
+          } else {
+            alert("Error: " + (err.response.data.message || "Something went wrong"));
+          }
         } else {
-          alert("Error: " + err.response.data.message || "Something went wrong");
+          alert("Network Error: Could not connect to server");
         }
-      } else {
-        alert("Network Error: Could not connect to server");
-      }
-      console.error("Error adding user:", err.response?.data || err);
-    });
-};
+        console.error("Error:", err.response?.data || err);
+      });
+  };
+
+  if (loading) return <Layout>Loading user data...</Layout>;
 
   return (
     <Layout>
@@ -58,7 +84,7 @@ function AddUser() {
           >
             <div className="card">
               <div className="card-body">
-                <h4 className="card-title">Add New User</h4>
+                <h4 className="card-title">{id ? "Edit User" : "Add New User"}</h4>
 
                 <form onSubmit={handleSubmit}>
                   <div className="form-group mb-3">
@@ -86,14 +112,14 @@ function AddUser() {
                   </div>
 
                   <div className="form-group mb-3">
-                    <label>Password</label>
+                    <label>{id ? "New Password (leave blank to keep current)" : "Password"}</label>
                     <input
                       type="password"
                       name="password"
                       className="form-control"
                       value={formData.password}
                       onChange={handleChange}
-                      required
+                      {...(!id && { required: true })}
                     />
                   </div>
 
@@ -112,7 +138,7 @@ function AddUser() {
 
                   <div style={{ textAlign: "right" }}>
                     <button type="submit" className="btn btn-primary">
-                      Add User
+                      {id ? "Update User" : "Add User"}
                     </button>
                   </div>
                 </form>
@@ -126,4 +152,4 @@ function AddUser() {
   );
 }
 
-export default AddUser;
+export default EditUser;
