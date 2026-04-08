@@ -9,6 +9,9 @@ import Category from "./components/pages/category/CategoryList";
 import Subcategory from "./components/pages/subcategory/SubcategoryList";
 import AddSubcategory from "./components/pages/subcategory/AddSubcategory";
 import Orders from "./components/pages/order/Order";
+import EditUser from "./components/pages/user/EditUser";
+import EditCategory from "./components/pages/category/EditCategory";
+import EditSubcategory from "./components/pages/subcategory/EditSubcategory";
 
 function App() {
   return (
@@ -16,14 +19,17 @@ function App() {
       <Routes>
         <Route path="/" element={<Dashboard />} />
         <Route path="/add-user" element={<AddUser />} />
-        <Route path="/users" element={<User/>} />
-        <Route path="/add-product" element={<AddProduct/>} />
-        <Route path="/products" element={<Product/>} />
-        <Route path="/add-category" element={<AddCategory/>} />
-        <Route path="/category" element={<Category/>} />
-        <Route path="/add-subcategory" element={<AddSubcategory/>} />
-        <Route path="/subcategory" element={<Subcategory/>} />
-        <Route path="/orders" element={<Orders/>} />
+        <Route path="/users" element={<User />} />
+        <Route path="/edit-user/:id" element={<EditUser />} />
+        <Route path="/add-product" element={<AddProduct />} />
+        <Route path="/products" element={<Product />} />
+        <Route path="/add-category" element={<AddCategory />} />
+        <Route path="/category" element={<Category />} />
+        <Route path="/edit-category/:id" element={<EditCategory/>} />
+        <Route path="/add-subcategory" element={<AddSubcategory />} />
+        <Route path="/subcategory" element={<Subcategory />} />
+        <Route path="/edit-subcategory/:id" element={<EditSubcategory/>} />
+        <Route path="/orders" element={<Orders />} />
       </Routes>
     </Router>
   );

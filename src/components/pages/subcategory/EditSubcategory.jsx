@@ -1,36 +1,50 @@
 import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import Layout from "../../layout/Layout";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
 
-function AddSubcategory() {
+function EditSubcategory() {
+    const { id } = useParams(); // get subcategory id from URL
     const navigate = useNavigate();
-    const [categories, setCategories] = useState([]);
+
     const [subCategoryName, setSubCategoryName] = useState("");
     const [categoryId, setCategoryId] = useState("");
     const [description, setDescription] = useState("");
+    const [categories, setCategories] = useState([]);
 
-    // Fetch categories from API
+    // Fetch all categories to populate dropdown
     useEffect(() => {
         axios.get("http://localhost:8000/api/categories")
             .then(res => setCategories(res.data))
             .catch(err => console.error(err));
     }, []);
 
+    // Fetch subcategory details by ID
+    useEffect(() => {
+        axios.get(`http://localhost:8000/api/subcategories/${id}`)
+            .then(res => {
+                setSubCategoryName(res.data.sub_category_name);
+                setCategoryId(res.data.category_id);
+                setDescription(res.data.description || "");
+            })
+            .catch(err => console.error(err));
+    }, [id]);
+
+    // Handle form submit to update subcategory
     const handleSubmit = (e) => {
         e.preventDefault();
-        axios.post("http://localhost:8000/api/subcategories", {
+        axios.put(`http://localhost:8000/api/subcategories/${id}`, {
             sub_category_name: subCategoryName,
             category_id: categoryId,
             description: description
         })
         .then(res => {
             alert(res.data.message);
-            navigate("/subcategory"); // redirect to subcategory table
+            navigate("/subcategory"); // redirect back to subcategory table
         })
         .catch(err => {
             console.error(err);
-            alert("Failed to add subcategory!");
+            alert("Failed to update subcategory!");
         });
     };
 
@@ -41,7 +55,7 @@ function AddSubcategory() {
                     <div className="col-md-6 grid-margin stretch-card" style={{ width: "80%", margin: "0 auto" }}>
                         <div className="card">
                             <div className="card-body">
-                                <h4 className="card-title">Add New Sub-Category</h4>
+                                <h4 className="card-title">Edit Sub-Category</h4>
                                 <form onSubmit={handleSubmit}>
                                     <div className="form-group" style={{ marginBottom: "15px" }}>
                                         <label>Sub-Category Name</label>
@@ -82,7 +96,7 @@ function AddSubcategory() {
                                     </div>
 
                                     <div style={{ textAlign: "right", marginTop: "10px" }}>
-                                        <button type="submit" className="btn btn-primary">Add Sub Category</button>
+                                        <button type="submit" className="btn btn-primary">Update Sub Category</button>
                                     </div>
                                 </form>
                             </div>
@@ -94,4 +108,4 @@ function AddSubcategory() {
     );
 }
 
-export default AddSubcategory;
+export default EditSubcategory;

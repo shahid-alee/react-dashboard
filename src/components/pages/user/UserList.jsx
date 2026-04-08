@@ -81,8 +81,7 @@ function User() {
                         <td>{user.email}</td>
                         <td>{user.role}</td>
                         <td>
-                          <a
-                            href={`/users/${user.id}`}
+                          <a href={`/edit-user/${user.id}`}
                             className="btn btn-info btn-sm me-2"
                           >
                             Edit

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Layout from "../../layout/Layout";
-import axios from "axios"; // Import Axios
+import axios from "axios";
 
 function AddUser() {
   const [formData, setFormData] = useState({
@@ -18,35 +18,37 @@ function AddUser() {
   };
 
   const handleSubmit = (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  axios
-    .post("http://127.0.0.1:8000/api/users/store", formData)
-    .then((res) => {
-      alert("User Added Successfully");
-      setFormData({
-        name: "",
-        email: "",
-        password: "",
-        role: "user",
-      });
-      console.log(res.data);
-    })
-    .catch((err) => {
-      if (err.response) {
-        if (err.response.status === 422) {
-          const errors = err.response.data.errors;
-          const messages = Object.values(errors).flat(); // Flatten all error messages
-          alert("Validation Error:\n" + messages.join("\n"));
+    axios
+      .post("http://127.0.0.1:8000/api/users/store", formData)
+      .then((res) => {
+        alert("User Added Successfully");
+        setFormData({
+          name: "",
+          email: "",
+          password: "",
+          role: "user",
+        });
+        console.log(res.data);
+      })
+      .catch((err) => {
+        if (err.response) {
+          if (err.response.status === 422) {
+            const errors = err.response.data.errors;
+            const messages = Object.values(errors).flat();
+            alert("Validation Error:\n" + messages.join("\n"));
+          } else {
+            alert(
+              "Error: " + (err.response.data.message || "Something went wrong")
+            );
+          }
         } else {
-          alert("Error: " + err.response.data.message || "Something went wrong");
+          alert("Network Error: Could not connect to server");
         }
-      } else {
-        alert("Network Error: Could not connect to server");
-      }
-      console.error("Error adding user:", err.response?.data || err);
-    });
-};
+        console.error("Error adding user:", err.response?.data || err);
+      });
+  };
 
   return (
     <Layout>
@@ -61,53 +63,74 @@ function AddUser() {
                 <h4 className="card-title">Add New User</h4>
 
                 <form onSubmit={handleSubmit}>
-                  <div className="form-group mb-3">
-                    <label>User Name</label>
-                    <input
-                      type="text"
-                      name="name"
-                      className="form-control"
-                      value={formData.name}
-                      onChange={handleChange}
-                      required
-                    />
+                  
+                  {/* Name */}
+                  <div className="form-group row mb-3">
+                    <label className="col-md-3 col-form-label">
+                      User Name
+                    </label>
+                    <div className="col-md-9">
+                      <input
+                        type="text"
+                        name="name"
+                        className="form-control"
+                        value={formData.name}
+                        onChange={handleChange}
+                        required
+                      />
+                    </div>
                   </div>
 
-                  <div className="form-group mb-3">
-                    <label>Email</label>
-                    <input
-                      type="email"
-                      name="email"
-                      className="form-control"
-                      value={formData.email}
-                      onChange={handleChange}
-                      required
-                    />
+                  {/* Email */}
+                  <div className="form-group row mb-3">
+                    <label className="col-md-3 col-form-label">
+                      Email
+                    </label>
+                    <div className="col-md-9">
+                      <input
+                        type="email"
+                        name="email"
+                        className="form-control"
+                        value={formData.email}
+                        onChange={handleChange}
+                        required
+                      />
+                    </div>
                   </div>
 
-                  <div className="form-group mb-3">
-                    <label>Password</label>
-                    <input
-                      type="password"
-                      name="password"
-                      className="form-control"
-                      value={formData.password}
-                      onChange={handleChange}
-                      required
-                    />
+                  {/* Password */}
+                  <div className="form-group row mb-3">
+                    <label className="col-md-3 col-form-label">
+                      Password
+                    </label>
+                    <div className="col-md-9">
+                      <input
+                        type="password"
+                        name="password"
+                        className="form-control"
+                        value={formData.password}
+                        onChange={handleChange}
+                        required
+                      />
+                    </div>
                   </div>
 
-                  <div className="form-group mb-3">
-                    <label>Role</label>
-                    <select
-                      name="role"
-                      className="form-control"
-                      value={formData.role}
-                      onChange={handleChange}
-                    >
-                      <option value="user">User</option>
-                      <option value="admin">Admin</option>
-                    </select>
+                  {/* Role */}
+                  <div className="form-group row mb-3">
+                    <label className="col-md-3 col-form-label">
+                      Role
+                    </label>
+                    <div className="col-md-9">
+                      <select
+                        name="role"
+                        className="form-control"
+                        value={formData.role}
+                        onChange={handleChange}
+                      >
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                      </select>
+                    </div>
                   </div>
 
                   <div style={{ textAlign: "right" }}>
@@ -115,6 +138,7 @@ function AddUser() {
                       Add User
                     </button>
                   </div>
+
                 </form>
 
               </div>

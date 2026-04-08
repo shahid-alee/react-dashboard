@@ -1,27 +1,36 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import Layout from "../../layout/Layout";
 import axios from "axios";
 
-function AddCategory() {
+function EditCategory() {
+    const { id } = useParams();
+    const navigate = useNavigate();
     const [categoryName, setCategoryName] = useState("");
     const [description, setDescription] = useState("");
 
+    useEffect(() => {
+        axios.get(`http://localhost:8000/api/categories/${id}`)
+            .then(res => {
+                setCategoryName(res.data.category_name);
+                setDescription(res.data.description);
+            })
+            .catch(err => console.error(err));
+    }, [id]);
+
     const handleSubmit = (e) => {
         e.preventDefault();
-
-        axios.post("http://localhost:8000/api/categories", {
+        axios.put(`http://localhost:8000/api/categories/${id}`, {
             category_name: categoryName,
-            description: description,
+            description: description
         })
-        .then((res) => {
+        .then(res => {
             alert(res.data.message);
-            // Reset form
-            setCategoryName("");
-            setDescription("");
+            navigate("/category"); // redirect to category table
         })
-        .catch((err) => {
+        .catch(err => {
             console.error(err);
-            alert("Failed to add category!");
+            alert("Failed to update category!");
         });
     };
 
@@ -32,8 +41,7 @@ function AddCategory() {
                     <div className="col-md-6 grid-margin stretch-card" style={{ width: "80%", margin: "0 auto" }}>
                         <div className="card">
                             <div className="card-body">
-                                <h4 className="card-title">Add New Category</h4>
-
+                                <h4 className="card-title">Edit Category</h4>
                                 <form onSubmit={handleSubmit}>
                                     <div className="form-group" style={{ marginBottom: "15px" }}>
                                         <label>Category Name</label>
@@ -45,7 +53,6 @@ function AddCategory() {
                                             required
                                         />
                                     </div>
-
                                     <div className="form-group">
                                         <label>Description</label>
                                         <textarea
@@ -55,14 +62,12 @@ function AddCategory() {
                                             style={{ height: "150px" }}
                                         ></textarea>
                                     </div>
-
                                     <div style={{ textAlign: "right" }}>
                                         <button type="submit" className="btn btn-primary">
-                                            Add Category
+                                            Update Category
                                         </button>
                                     </div>
                                 </form>
-
                             </div>
                         </div>
                     </div>
@@ -72,4 +77,4 @@ function AddCategory() {
     );
 }
 
-export default AddCategory;
+export default EditCategory;

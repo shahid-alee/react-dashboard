@@ -30382,6 +30382,18 @@ dl li {
   outline: 1px solid slategrey;
 }
 /*# sourceMappingURL=maps/style.css.map */
+.form-control {
+  background-color: #fff !important;
+  color: #000 !important;
+  border: 1px solid #ced4da;
+}
 
+textarea.form-control {
+  background-color: #fff !important;
+}
+
+.col-form-label {
+  font-weight: 600;
+}
 
 

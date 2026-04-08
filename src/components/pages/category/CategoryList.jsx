@@ -1,20 +1,32 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Layout from "../../layout/Layout";
+import { Link } from "react-router-dom"; // import at the top
+import axios from "axios";
 
 function Category() {
-    // 5 Dummy Categories
-    const categories = [
-        { id: 1, name: "Mobile", description: "All types of smartphones and mobile accessories." },
-        { id: 2, name: "Laptop", description: "Professional, gaming, and student laptops." },
-        { id: 3, name: "Electronics", description: "Home appliances, cameras, and audio gear." },
-        { id: 4, name: "Fashion", description: "Clothing, watches, and luxury handbags." },
-        { id: 5, name: "Gaming", description: "Consoles, controllers, and video games." }
-    ];
+    const [categories, setCategories] = useState([]);
 
-    const handleDelete = (e) => {
-        e.preventDefault();
+
+
+    // Fetch categories from API
+    useEffect(() => {
+        axios.get("http://localhost:8000/api/categories")
+            .then((res) => {
+                setCategories(res.data);
+            })
+            .catch((err) => {
+                console.error("Error fetching categories:", err);
+            });
+    }, []);
+
+    const handleDelete = (id) => {
         if (window.confirm("Are you sure you want to delete this category?")) {
-            console.log("Category Deleted");
+            axios.delete(`http://localhost:8000/api/categories/${id}`)
+                .then((res) => {
+                    alert("Category deleted successfully!");
+                    setCategories(categories.filter(cat => cat.id !== id)); // Remove from state
+                })
+                .catch((err) => console.error(err));
         }
     };
 
@@ -28,7 +40,7 @@ function Category() {
                                 <div className="card-body">
                                     <div className="d-flex justify-content-between align-items-center mb-3">
                                         <h4 className="card-title">Categories Table</h4>
-                                        <a href="#" className="btn btn-primary btn-rounded btn-fw">
+                                        <a href="/add-category" className="btn btn-primary btn-rounded btn-fw">
                                             Add New Category
                                         </a>
                                     </div>
@@ -48,20 +60,20 @@ function Category() {
                                                 {categories.map((cat) => (
                                                     <tr key={cat.id}>
                                                         <td>{cat.id}</td>
-                                                        <td>{cat.name}</td>
+                                                        <td>{cat.category_name}</td>
                                                         <td>{cat.description}</td>
                                                         <td>
-                                                            <a href={`/edit-category/${cat.id}`} style={{ marginRight: "5px" }}>
-                                                                <button type="button" className="btn btn-info btn-rounded btn-sm">
-                                                                    EDIT
-                                                                </button>
-                                                            </a>
+                                                            <Link to={`/edit-category/${cat.id}`} style={{ marginRight: "5px" }}>
+                                                                <button type="button" className="btn btn-info btn-rounded btn-sm">EDIT</button>
+                                                            </Link>
 
-                                                            <form style={{ display: "inline" }} onSubmit={handleDelete}>
-                                                                <button type="submit" className="btn btn-danger btn-rounded btn-sm">
-                                                                    Delete
-                                                                </button>
-                                                            </form>
+                                                            <button
+                                                                type="button"
+                                                                className="btn btn-danger btn-rounded btn-sm"
+                                                                onClick={() => handleDelete(cat.id)}
+                                                            >
+                                                                Delete
+                                                            </button>
                                                         </td>
                                                     </tr>
                                                 ))}

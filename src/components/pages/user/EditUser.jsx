@@ -47,9 +47,15 @@ function EditUser() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const request = id
-      ? axios.put(`http://127.0.0.1:8000/api/users/${id}`, formData)
-      : axios.post("http://127.0.0.1:8000/api/users/store", formData);
+   const dataToSend = { ...formData };
+
+if (!dataToSend.password) {
+  delete dataToSend.password;
+}
+
+const request = id
+  ? axios.put(`http://127.0.0.1:8000/api/users/${id}`, dataToSend)
+  : axios.post("http://127.0.0.1:8000/api/users/store", dataToSend);
 
     request
       .then((res) => {
