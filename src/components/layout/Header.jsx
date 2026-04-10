@@ -1,10 +1,40 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import API from "../../api/axios";
 import "../../App.css";
 
 
 
 function Header() {
-  const [count, setCount] = useState(0);
+  const navigate = useNavigate();
+
+  const [user, setUser] = useState({
+    name: "",
+    email: "",
+  });
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await API.post("/logout");
+
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+
+      navigate("/");
+    } catch (error) {
+      console.log(error);
+      alert("Logout failed");
+    }
+  };
+
+
 
   return (
     <nav className="navbar default-layout col-lg-12 col-12 p-0 fixed-top d-flex align-items-top flex-row">
@@ -146,34 +176,35 @@ function Header() {
                   src="https://via.placeholder.com/40"
                   alt="Profile image"
                   style={{ width: "50px", height: "50px", objectFit: "cover" }} />
-
                 <p className="mb-1 mt-3 fw-semibold">
-                  test                                 </p>
+                  {user.name}
+                </p>
 
                 <p className="fw-light text-muted mb-0">
-                  test@gmail.com
+                  {user.email}
                 </p>
               </div>
 
-              <a href="" className="dropdown-item">
+              <a href="/edit-profile" className="dropdown-item">
                 <i className="dropdown-item-icon mdi mdi-account-outline text-primary me-2"></i>
                 My Profile
               </a>
 
-              <a href="" className="dropdown-item">
+              <a href="/change-password" className="dropdown-item">
                 <i className="dropdown-item-icon mdi mdi-message-text-outline text-primary me-2"></i>
                 Change password
               </a>
 
 
 
-              <form method="POST" action="">
-
-                <button type="submit" className="dropdown-item">
-                  <i className="dropdown-item-icon mdi mdi-power text-primary me-2"></i>
-                  Sign Out
-                </button>
-              </form>
+              <button
+                onClick={handleLogout}
+                className="dropdown-item"
+                type="button"
+              >
+                <i className="dropdown-item-icon mdi mdi-power text-primary me-2"></i>
+                Sign Out
+              </button>
             </div>
           </li>
 

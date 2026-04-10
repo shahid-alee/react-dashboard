@@ -12,12 +12,20 @@ import Orders from "./components/pages/order/Order";
 import EditUser from "./components/pages/user/EditUser";
 import EditCategory from "./components/pages/category/EditCategory";
 import EditSubcategory from "./components/pages/subcategory/EditSubcategory";
+import Login from "./components/pages/auth/login";
+import Register from "./components/pages/auth/Register";
+import EditProfile from "./components/pages/profile/EditProfile";
+import ChangePassword from "./components/pages/profile/ChangePassword";
 
 function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Dashboard />} />
+        <Route path="/" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/edit-profile" element={<EditProfile />} />
+        <Route path="/change-password" element={<ChangePassword />} />
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/add-user" element={<AddUser />} />
         <Route path="/users" element={<User />} />
         <Route path="/edit-user/:id" element={<EditUser />} />
@@ -25,10 +33,10 @@ function App() {
         <Route path="/products" element={<Product />} />
         <Route path="/add-category" element={<AddCategory />} />
         <Route path="/category" element={<Category />} />
-        <Route path="/edit-category/:id" element={<EditCategory/>} />
+        <Route path="/edit-category/:id" element={<EditCategory />} />
         <Route path="/add-subcategory" element={<AddSubcategory />} />
         <Route path="/subcategory" element={<Subcategory />} />
-        <Route path="/edit-subcategory/:id" element={<EditSubcategory/>} />
+        <Route path="/edit-subcategory/:id" element={<EditSubcategory />} />
         <Route path="/orders" element={<Orders />} />
       </Routes>
     </Router>

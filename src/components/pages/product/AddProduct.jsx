@@ -5,36 +5,47 @@ import axios from "axios";
 function AddProduct() {
   const [formData, setFormData] = useState({
     product_name: "",
-    base_price: "",
+    base_price: "", // Changed back to base_price
     description: "",
-    category: "",
-    subcategory: "",
     variants: [],
-    image: null,
+    images: [], // Changed from image to images (array)
   });
 
+  const [categoryId, setCategoryId] = useState("");
+  const [subcategoryId, setSubcategoryId] = useState("");
 
   const [categories, setCategories] = useState([]);
   const [subcategories, setSubcategories] = useState([]);
+  const [variantIndex, setVariantIndex] = useState(0);
+  const [loading, setLoading] = useState(false);
 
-  // Fetch categories and subcategories on mount
   useEffect(() => {
     const fetchData = async () => {
       try {
         const catRes = await axios.get("http://127.0.0.1:8000/api/categories");
-        const subcatRes = await axios.get("http://127.0.0.1:8000/api/subcategories");
-        setCategories(catRes.data.data);
-        setSubcategories(subcatRes.data.data);
+        const subcatRes = await axios.get("http://127.0.0.1:8000/api/subcategory");
+
+        console.log("Category API:", catRes.data);
+        console.log("Subcategories API:", subcatRes.data);
+
+        setCategories(
+          Array.isArray(catRes.data) ? catRes.data : catRes.data.data || []
+        );
+
+        setSubcategories(
+          Array.isArray(subcatRes.data) ? subcatRes.data : subcatRes.data.data || []
+        );
+
       } catch (err) {
-        console.error("Error fetching categories/subcategories:", err);
+        console.error("Fetch Error:", err);
+        setCategories([]);
+        setSubcategories([]);
       }
     };
+
     fetchData();
   }, []);
 
-  const [variantIndex, setVariantIndex] = useState(0);
-
-  // Handle normal input
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -42,22 +53,22 @@ function AddProduct() {
     });
   };
 
-  // Handle image
   const handleImageChange = (e) => {
+    // Convert FileList to array for multiple images
+    const files = Array.from(e.target.files);
     setFormData({
       ...formData,
-      image: e.target.files[0],
+      images: files,
     });
   };
 
-  
   const addVariant = (type) => {
     const newVariant = {
       id: variantIndex,
       type: type,
       name: "",
       stock: 0,
-      price_adjustment: type === "storage" ? 0 : 0, // only used for storage
+      price_adjustment: 0,
     };
 
     setFormData((prev) => ({
@@ -68,47 +79,77 @@ function AddProduct() {
     setVariantIndex((prev) => prev + 1);
   };
 
-  // Handle Variant Change
   const handleVariantChange = (index, field, value) => {
-    const updatedVariants = [...formData.variants];
-    updatedVariants[index][field] = value;
+    const updated = [...formData.variants];
+    updated[index][field] = value;
 
-    setFormData({
-      ...formData,
-      variants: updatedVariants,
-    });
+    setFormData({ ...formData, variants: updated });
   };
 
-  // Remove Variant
   const removeVariant = (index) => {
     const updated = formData.variants.filter((_, i) => i !== index);
     setFormData({ ...formData, variants: updated });
   };
 
-  // Submit Form
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const data = new FormData();
+    // Client-side validation
+    if (!formData.product_name.trim()) {
+      alert("Product name is required");
+      return;
+    }
+    if (!formData.base_price || formData.base_price <= 0) {
+      alert("Valid base price is required");
+      return;
+    }
+    if (!categoryId) {
+      alert("Please select a category");
+      return;
+    }
+    if (!formData.description.trim()) {
+      alert("Description is required");
+      return;
+    }
+    if (formData.images.length === 0) {
+      alert("Please select at least one image");
+      return;
+    }
 
+    setLoading(true);
+
+    // Create FormData
+    const data = new FormData();
     data.append("product_name", formData.product_name);
     data.append("base_price", formData.base_price);
     data.append("description", formData.description);
-    data.append("category", formData.category);
-    data.append("subcategory", formData.subcategory);
-    data.append("image", formData.image);
+    data.append("category_id", categoryId);
+    if (subcategoryId) {
+      data.append("subcategory_id", subcategoryId);
+    }
 
-    // Ensure correct pricing logic
-    const cleanVariants = formData.variants.map((v) => ({
-      ...v,
-      price_adjustment: v.type === "storage" ? v.price_adjustment : 0,
-    }));
+    // Append multiple images
+    formData.images.forEach((image, index) => {
+      data.append(`image[${index}]`, image);
+    });
 
-    data.append("variants", JSON.stringify(cleanVariants));
+    // Append variants as array (not JSON string)
+    formData.variants.forEach((variant, index) => {
+      data.append(`variants[${index}][type]`, variant.type);
+      data.append(`variants[${index}][name]`, variant.name);
+      data.append(`variants[${index}][stock]`, variant.stock || 0);
+      data.append(`variants[${index}][price_adjustment]`, variant.price_adjustment || 0);
+    });
+
+    // Log FormData contents for debugging
+    console.log("Sending FormData:");
+    for (let pair of data.entries()) {
+      console.log(pair[0] + ': ' + pair[1]);
+    }
 
     try {
       const res = await axios.post(
-        "http://127.0.0.1:8000/api/products/store",
+        "http://127.0.0.1:8000/api/product/store",
         data,
         {
           headers: {
@@ -117,11 +158,56 @@ function AddProduct() {
         }
       );
 
+      console.log("Success response:", res.data);
       alert("Product Added Successfully");
-      console.log(res.data);
+
+      // Reset form
+      setFormData({
+        product_name: "",
+        base_price: "",
+        description: "",
+        variants: [],
+        images: [],
+      });
+      setCategoryId("");
+      setSubcategoryId("");
+      setVariantIndex(0);
+      
+      // Reset file input
+      const fileInput = document.querySelector('input[type="file"]');
+      if (fileInput) {
+        fileInput.value = "";
+      }
+      
     } catch (err) {
-      console.error(err);
-      alert("Error adding product");
+      console.error("Submit Error:", err);
+      
+      if (err.response) {
+        console.error("Response status:", err.response.status);
+        console.error("Response data:", err.response.data);
+        
+        // Show detailed error message
+        let errorMessage = `Error (${err.response.status}):\n`;
+        
+        if (err.response.data.errors) {
+          // Validation errors from Laravel
+          const errors = err.response.data.errors;
+          for (let field in errors) {
+            errorMessage += `${field}: ${errors[field].join(", ")}\n`;
+          }
+          alert(errorMessage);
+        } else if (err.response.data.message) {
+          alert(errorMessage + err.response.data.message);
+        } else {
+          alert(errorMessage + JSON.stringify(err.response.data, null, 2));
+        }
+      } else if (err.request) {
+        alert("Cannot connect to server. Please check if backend is running.");
+      } else {
+        alert(`Error: ${err.message}`);
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -134,191 +220,200 @@ function AddProduct() {
 
             <form onSubmit={handleSubmit}>
               {/* Product Name */}
-              <div className="form-group row mb-3">
-                <label className="col-md-3 col-form-label">
-                  Product Name
-                </label>
-                <div className="col-md-9">
-                  <input
-                    type="text"
-                    name="product_name"
-                    className="form-control"
-                    onChange={handleChange}
-                  />
-                </div>
+              <div className="mb-3">
+                <label className="form-label">Product Name *</label>
+                <input
+                  type="text"
+                  name="product_name"
+                  placeholder="Enter product name"
+                  className="form-control"
+                  value={formData.product_name}
+                  onChange={handleChange}
+                  required
+                />
               </div>
 
-              {/* Price */}
-              <div className="form-group row mb-3">
-                <label className="col-md-3 col-form-label">Price</label>
-                <div className="col-md-9">
-                  <input
-                    type="number"
-                    name="base_price"
-                    className="form-control"
-                    onChange={handleChange}
-                  />
-                </div>
+              {/* Base Price */}
+              <div className="mb-3">
+                <label className="form-label">Base Price *</label>
+                <input
+                  type="number"
+                  name="base_price"
+                  placeholder="Enter base price"
+                  className="form-control"
+                  value={formData.base_price}
+                  onChange={handleChange}
+                  required
+                  step="0.01"
+                />
               </div>
 
               {/* Category */}
-              <label className="col-md-3 col-form-label">Category</label>
-              <select
-                name="category"
-                className="form-control"
-                onChange={handleChange}
-                value={formData.category}
-              >
-                <option value="">Select Category</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>{cat.name}</option>
-                ))}
-              </select>
-
-              {/* Subcategory */}
-              <label className="col-md-3 col-form-label">Subcategory</label>
-              <select
-                name="subcategory"
-                className="form-control"
-                onChange={handleChange}
-                value={formData.subcategory}
-              >
-                <option value="">Select Subcategory</option>
-                {subcategories.map((sub) => (
-                  <option key={sub.id} value={sub.id}>{sub.name}</option>
-                ))}
-              </select>
-
-              {/* Description */}
-              <div className="form-group row mb-3">
-                <label className="col-md-3 col-form-label">
-                  Description
-                </label>
-                <div className="col-md-9">
-                  <textarea
-                    name="description"
-                    className="form-control"
-                    onChange={handleChange}
-                  />
-                </div>
+              <div className="mb-3">
+                <label className="form-label">Category *</label>
+                <select
+                  className="form-control"
+                  value={categoryId}
+                  onChange={(e) => setCategoryId(e.target.value)}
+                  required
+                >
+                  <option value="">Select Category</option>
+                  {Array.isArray(categories) &&
+                    categories.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.category_name || cat.name}
+                      </option>
+                    ))}
+                </select>
               </div>
 
-              {/* Image Upload */}
-              {/* <div className="form-group row mb-3">
-                <label className="col-md-3 col-form-label">
-                  Product Image
-                </label>
-                <div className="col-md-9">
-                  <input
-                    type="file"
-                    className="form-control"
-                    onChange={handleImageChange}
-                  />
+              {/* Subcategory */}
+              <div className="mb-3">
+                <label className="form-label">Subcategory</label>
+                <select
+                  className="form-control"
+                  value={subcategoryId}
+                  onChange={(e) => setSubcategoryId(e.target.value)}
+                >
+                  <option value="">Select Subcategory</option>
+                  {Array.isArray(subcategories) &&
+                    subcategories.map((sub) => (
+                      <option key={sub.id} value={sub.id}>
+                        {sub.sub_category_name || sub.name}
+                      </option>
+                    ))}
+                </select>
+              </div>
 
-                  {formData.image && (
-                    <div className="mt-2">
-                      <img
-                        src={URL.createObjectURL(formData.image)}
-                        alt="preview"
-                        width="120"
-                      />
-                    </div>
-                  )}
-                </div>
-              </div> */}
+              {/* Description */}
+              <div className="mb-3">
+                <label className="form-label">Description *</label>
+                <textarea
+                  name="description"
+                  placeholder="Enter product description"
+                  className="form-control"
+                  rows="4"
+                  value={formData.description}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              {/* Images - Multiple */}
+              <div className="mb-3">
+                <label className="form-label">Product Images * (You can select multiple)</label>
+                <input
+                  type="file"
+                  className="form-control"
+                  onChange={handleImageChange}
+                  accept="image/*"
+                  multiple
+                  required
+                />
+                <small className="text-muted">
+                  Allowed formats: JPG, JPEG, PNG. Max size: 10MB per image
+                </small>
+                {formData.images.length > 0 && (
+                  <div className="mt-2">
+                    <strong>Selected files:</strong>
+                    <ul>
+                      {formData.images.map((file, index) => (
+                        <li key={index}>{file.name}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
 
               <hr />
 
-              <h5>Variants</h5>
-
-              {/* Buttons */}
+              <h5>Variants (Optional)</h5>
               <div className="mb-3">
-                <button type="button" onClick={() => addVariant("storage")} className="btn btn-primary me-2">
-                  Add Storage
+                <button 
+                  type="button" 
+                  onClick={() => addVariant("storage")} 
+                  className="btn btn-primary me-2"
+                >
+                  Add Storage Variant
                 </button>
-
-                <button type="button" onClick={() => addVariant("generation")} className="btn btn-info me-2">
-                  Add Generation
+                <button 
+                  type="button" 
+                  onClick={() => addVariant("color")} 
+                  className="btn btn-warning me-2"
+                >
+                  Add Color Variant
                 </button>
-
-                <button type="button" onClick={() => addVariant("color")} className="btn btn-warning">
-                  Add Color
+                <button 
+                  type="button" 
+                  onClick={() => addVariant("generation")} 
+                  className="btn btn-info"
+                >
+                  Add Generation Variant
                 </button>
               </div>
 
-              {/* Variants */}
               {formData.variants.map((variant, index) => (
-                <div key={variant.id} className="border p-3 mb-3">
-
-                  <h6 className="text-capitalize">{variant.type} Variant</h6>
-
-                  {/* Name */}
-                  <div className="form-group row mb-2">
-                    <label className="col-md-3 col-form-label">Name</label>
-                    <div className="col-md-9">
-                      <input
-                        type="text"
-                        className="form-control"
-                        value={variant.name}
-                        onChange={(e) =>
-                          handleVariantChange(index, "name", e.target.value)
-                        }
-                      />
-                    </div>
+                <div key={variant.id} className="border p-3 mt-3 rounded">
+                  <h6>Variant {index + 1} - {variant.type.toUpperCase()}</h6>
+                  
+                  <div className="mb-2">
+                    <label className="form-label">Variant Name *</label>
+                    <input
+                      type="text"
+                      placeholder="e.g., 128GB, Red, iPhone 12"
+                      className="form-control"
+                      value={variant.name}
+                      onChange={(e) =>
+                        handleVariantChange(index, "name", e.target.value)
+                      }
+                      required
+                    />
                   </div>
 
-                  {/* Price ONLY for storage */}
                   {variant.type === "storage" && (
-                    <div className="form-group row mb-2">
-                      <label className="col-md-3 col-form-label">
-                        Price Adjustment
-                      </label>
-                      <div className="col-md-9">
-                        <input
-                          type="number"
-                          className="form-control"
-                          value={variant.price_adjustment}
-                          onChange={(e) =>
-                            handleVariantChange(
-                              index,
-                              "price_adjustment",
-                              e.target.value
-                            )
-                          }
-                        />
-                      </div>
+                    <div className="mb-2">
+                      <label className="form-label">Price Adjustment</label>
+                      <input
+                        type="number"
+                        placeholder="Additional price (if any)"
+                        className="form-control"
+                        value={variant.price_adjustment}
+                        onChange={(e) =>
+                          handleVariantChange(index, "price_adjustment", e.target.value)
+                        }
+                      />
                     </div>
                   )}
 
-                  {/* Stock */}
-                  <div className="form-group row mb-2">
-                    <label className="col-md-3 col-form-label">Stock</label>
-                    <div className="col-md-9">
-                      <input
-                        type="number"
-                        className="form-control"
-                        value={variant.stock}
-                        onChange={(e) =>
-                          handleVariantChange(index, "stock", e.target.value)
-                        }
-                      />
-                    </div>
+                  <div className="mb-2">
+                    <label className="form-label">Stock Quantity</label>
+                    <input
+                      type="number"
+                      placeholder="Stock quantity"
+                      className="form-control"
+                      value={variant.stock}
+                      onChange={(e) =>
+                        handleVariantChange(index, "stock", e.target.value)
+                      }
+                    />
                   </div>
 
-                  <div className="text-end">
-                    <button
-                      type="button"
-                      className="btn btn-danger"
-                      onClick={() => removeVariant(index)}
-                    >
-                      Remove
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    className="btn btn-danger btn-sm"
+                    onClick={() => removeVariant(index)}
+                  >
+                    Remove Variant
+                  </button>
                 </div>
               ))}
 
-              <button type="submit" className="btn btn-success mt-3">
-                Save Product
+              <button 
+                type="submit" 
+                className="btn btn-success mt-3"
+                disabled={loading}
+              >
+                {loading ? "Saving..." : "Save Product"}
               </button>
             </form>
           </div>

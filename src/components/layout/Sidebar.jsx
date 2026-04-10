@@ -48,7 +48,7 @@ function Sidebar() {
               </li>
 
               <li className="nav-item">
-                <Link className="nav-link" to="/Add-product">Add New Product</Link>
+                <Link className="nav-link" to="/add-product">Add New Product</Link>
               </li>
 
             </ul>
