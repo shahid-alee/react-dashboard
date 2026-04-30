@@ -3,125 +3,140 @@ import Layout from "../../layout/Layout";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-
-
 function Product() {
     const [products, setProducts] = useState([]);
     const navigate = useNavigate();
 
     const fetchProducts = async () => {
-    try {
-        const res = await axios.get("http://localhost:8000/api/products");
-        setProducts(res.data.data);
-    } catch (error) {
-        console.error("Error fetching products:", error);
-    }
-};
+        try {
+            const token = localStorage.getItem("token");
+
+            const res = await axios.get(
+                "http://127.0.0.1:8000/api/products",
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            console.log("API RESPONSE:", res.data);
+
+            setProducts(res.data.data); 
+        } catch (error) {
+            console.log("ERROR:", error.response?.data || error.message);
+        }
+
+        // console.log(products);
+    };
+
 
     useEffect(() => {
         fetchProducts();
     }, []);
 
-
     const handleDelete = async (id) => {
-        if (!window.confirm("Are you sure you want to delete this product?")) return;
+        if (!window.confirm("Delete product?")) return;
 
         try {
-            await axios.delete(`http://localhost:8000/api/product/${id}`);
+            const token = localStorage.getItem("token");
+
+            await axios.delete(
+                `http://127.0.0.1:8000/api/product/${id}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
             fetchProducts();
         } catch (error) {
-            console.error("Delete failed:", error);
+            console.log("DELETE ERROR:", error.response?.data || error.message);
         }
     };
 
+
     return (
         <Layout>
-            <div className="main-panel">
-                <div className="content-wrapper">
-                    <div className="row">
-                        <div className="col-lg-12 grid-margin stretch-card">
-                            <div className="card">
-                                <div className="card-body">
+            <div className="content-wrapper">
+                <div className="card">
+                    <div className="card-body">
 
-                                    <div className="d-flex justify-content-between mb-3">
-                                        <h4>Products Table</h4>
-                                        <button
-                                            className="btn btn-primary"
-                                            onClick={() => navigate("/add-product")}
-                                        >
-                                            Add Product
-                                        </button>
-                                    </div>
-
-                                    <div className="table-responsive">
-                                        <table className="table table-striped">
-                                            <thead>
-                                                <tr>
-                                                    <th>ID</th>
-                                                    <th>Image</th>
-                                                    <th>Name</th>
-                                                    <th>Category</th>
-                                                    <th>Sub Category</th>
-                                                    <th>Price</th>
-                                                    <th>Quantity</th>
-                                                    <th>Actions</th>
-                                                </tr>
-                                            </thead>
-
-                                            <tbody>
-                                                {products.length > 0 ? (
-                                                    products.map((product) => (
-                                                        <tr key={product.id}>
-                                                            <td>{product.id}</td>
-
-                                                            <td>
-                                                                {product.image && product.image.length > 0 && (
-                                                                    <img
-                                                                        src={`http://localhost:8000/storage/${product.image[0]}`}
-                                                                        width="60"
-                                                                        alt="product"
-                                                                    />
-                                                                )}
-                                                            </td>
-
-                                                            <td>{product.product_name}</td>
-                                                            <td>
-                                                                {product.category?.category_name || "N/A"}
-                                                            </td>
-                                                            <td>
-                                                                {product.subcategory?.sub_category_name || "N/A"}
-                                                            </td>
-                                                            <td>Rs {product.price}</td>
-                                                            <td>{product.quantity}</td>
-
-                                                            <td>
-                                                                <button className="btn btn-info btn-sm" onClick={() => navigate(`/edit-product/${product.id}`)}>EDIT</button>
-                                                                <button className="btn btn-secondary btn-sm" onClick={() => navigate(`/view-product/${product.id}`)}>VIEW</button>
-
-                                                                <button
-                                                                    className="btn btn-danger btn-sm"
-                                                                    onClick={() => handleDelete(product.id)}
-                                                                >
-                                                                    DELETE
-                                                                </button>
-                                                            </td>
-                                                        </tr>
-                                                    ))
-                                                ) : (
-                                                    <tr>
-                                                        <td colSpan="8" className="text-center">
-                                                            No Products Found
-                                                        </td>
-                                                    </tr>
-                                                )}
-                                            </tbody>
-
-                                        </table>
-                                    </div>
-
-                                </div>
-                            </div>
+                        <div className="d-flex justify-content-between mb-3">
+                            <h4>Products Table</h4>
+                            <button
+                                className="btn btn-primary"
+                                onClick={() => navigate("/add-product")}
+                            >
+                                Add Product
+                            </button>
                         </div>
+
+                        <table className="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>product Image</th>
+                                    <th>Product Name</th>
+                                    <th>Category</th>
+                                    <th>Sub Category</th>
+                                    <th>Price</th>
+                                    <th>Quantity</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                {products.length > 0 ? (
+                                    products.map((p) => (
+                                        <tr key={p.id}>
+                                            <td>{p.id}</td>
+                                            <td>
+                                                {p.image && p.image.length > 0 ? (
+                                                    <img
+                                                        src={`http://127.0.0.1:8000/storage/${p.image[0]}`}
+                                                        alt={p.product_name}
+                                                        width="50"
+                                                        height="50"
+                                                        style={{ objectFit: "cover", borderRadius: "5px" }}
+                                                    />
+                                                ) : (
+                                                    "No Image"
+                                                )}
+                                            </td>
+                                            <td>{p.product_name}</td>
+                                            <td>{p.category?.category_name || "N/A"}</td>
+                                            <td>{p.subcategory?.sub_category_name || "N/A"}</td>
+                                            <td>Rs {p.price}</td>
+                                            <td>{p.quantity}</td>
+                                            <td>
+                                                <button
+                                                    className="btn btn-info btn-sm me-2"
+                                                    onClick={() => navigate(`/edit-product/${p.id}`)}
+                                                >
+                                                    Edit
+                                                </button>
+
+                                                <button
+                                                    className="btn btn-danger btn-sm"
+                                                    onClick={() => handleDelete(p.id)}
+                                                >
+                                                    Delete
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan="8" className="text-center">
+                                            No Products Found
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+
                     </div>
                 </div>
             </div>

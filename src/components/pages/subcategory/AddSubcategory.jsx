@@ -12,27 +12,53 @@ function AddSubcategory() {
 
     // Fetch categories from API
     useEffect(() => {
-        axios.get("http://localhost:8000/api/categories")
-            .then(res => setCategories(res.data))
-            .catch(err => console.error(err));
-    }, []);
+    const token = localStorage.getItem("token");
+
+    axios.get("http://localhost:8000/api/categories", {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    })
+    .then(res => {
+        setCategories(res.data);
+    })
+    .catch(err => {
+        console.log("CATEGORY ERROR:", err.response?.data || err.message);
+    });
+}, []);
 
     const handleSubmit = (e) => {
-        e.preventDefault();
-        axios.post("http://localhost:8000/api/subcategories", {
+    e.preventDefault();
+
+    const token = localStorage.getItem("token");
+
+    axios.post(
+        "http://localhost:8000/api/subcategories",
+        {
             sub_category_name: subCategoryName,
             category_id: categoryId,
-            description: description
-        })
-        .then(res => {
-            alert(res.data.message);
-            navigate("/subcategory"); // redirect to subcategory table
-        })
-        .catch(err => {
-            console.error(err);
-            alert("Failed to add subcategory!");
-        });
-    };
+            description: description,
+        },
+        {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        }
+    )
+    .then(res => {
+        alert(res.data.message || "Subcategory added successfully");
+
+        navigate("/subcategory");
+    })
+    .catch(err => {
+        console.log("ERROR:", err.response?.data);
+
+        alert(
+            err.response?.data?.message ||
+            "Failed to add subcategory (unauthorized or validation error)"
+        );
+    });
+};
 
     return (
         <Layout>

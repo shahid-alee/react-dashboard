@@ -19,32 +19,34 @@ function AddProduct() {
   const [variantIndex, setVariantIndex] = useState(0);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const catRes = await axios.get("http://127.0.0.1:8000/api/categories");
-        const subcatRes = await axios.get("http://127.0.0.1:8000/api/subcategory");
+ useEffect(() => {
+  const fetchData = async () => {
+    try {
+      const catRes = await axios.get("http://127.0.0.1:8000/api/categories");
+      const subcatRes = await axios.get("http://127.0.0.1:8000/api/subcategories");
 
-        console.log("Category API:", catRes.data);
-        console.log("Subcategories API:", subcatRes.data);
+      console.log("CATEGORIES:", catRes.data);
+      console.log("SUBCATEGORIES:", subcatRes.data);
 
-        setCategories(
-          Array.isArray(catRes.data) ? catRes.data : catRes.data.data || []
-        );
+      const categoriesData = Array.isArray(catRes.data)
+        ? catRes.data
+        : catRes.data.data || [];
 
-        setSubcategories(
-          Array.isArray(subcatRes.data) ? subcatRes.data : subcatRes.data.data || []
-        );
+      const subcategoriesData = Array.isArray(subcatRes.data)
+        ? subcatRes.data
+        : subcatRes.data.data || [];
 
-      } catch (err) {
-        console.error("Fetch Error:", err);
-        setCategories([]);
-        setSubcategories([]);
-      }
-    };
+      setCategories(categoriesData);
+      setSubcategories(subcategoriesData);
 
-    fetchData();
-  }, []);
+    } catch (err) {
+      console.error("Fetch Error:", err.response?.data || err.message);
+    }
+  };
+
+  fetchData();
+}, []);
+
 
   const handleChange = (e) => {
     setFormData({
@@ -129,10 +131,9 @@ function AddProduct() {
     }
 
     // Append multiple images
-    formData.images.forEach((image, index) => {
-      data.append(`image[${index}]`, image);
+    formData.images.forEach((image) => {
+      data.append("image[]", image);
     });
-
     // Append variants as array (not JSON string)
     formData.variants.forEach((variant, index) => {
       data.append(`variants[${index}][type]`, variant.type);
@@ -144,7 +145,7 @@ function AddProduct() {
     // Log FormData contents for debugging
     console.log("Sending FormData:");
     for (let pair of data.entries()) {
-      console.log(pair[0] + ': ' + pair[1]);
+      console.log(pair[0], pair[1]);
     }
 
     try {
@@ -172,23 +173,23 @@ function AddProduct() {
       setCategoryId("");
       setSubcategoryId("");
       setVariantIndex(0);
-      
+
       // Reset file input
       const fileInput = document.querySelector('input[type="file"]');
       if (fileInput) {
         fileInput.value = "";
       }
-      
+
     } catch (err) {
       console.error("Submit Error:", err);
-      
+
       if (err.response) {
         console.error("Response status:", err.response.status);
         console.error("Response data:", err.response.data);
-        
+
         // Show detailed error message
         let errorMessage = `Error (${err.response.status}):\n`;
-        
+
         if (err.response.data.errors) {
           // Validation errors from Laravel
           const errors = err.response.data.errors;
@@ -329,23 +330,23 @@ function AddProduct() {
 
               <h5>Variants (Optional)</h5>
               <div className="mb-3">
-                <button 
-                  type="button" 
-                  onClick={() => addVariant("storage")} 
+                <button
+                  type="button"
+                  onClick={() => addVariant("storage")}
                   className="btn btn-primary me-2"
                 >
                   Add Storage Variant
                 </button>
-                <button 
-                  type="button" 
-                  onClick={() => addVariant("color")} 
+                <button
+                  type="button"
+                  onClick={() => addVariant("color")}
                   className="btn btn-warning me-2"
                 >
                   Add Color Variant
                 </button>
-                <button 
-                  type="button" 
-                  onClick={() => addVariant("generation")} 
+                <button
+                  type="button"
+                  onClick={() => addVariant("generation")}
                   className="btn btn-info"
                 >
                   Add Generation Variant
@@ -355,7 +356,7 @@ function AddProduct() {
               {formData.variants.map((variant, index) => (
                 <div key={variant.id} className="border p-3 mt-3 rounded">
                   <h6>Variant {index + 1} - {variant.type.toUpperCase()}</h6>
-                  
+
                   <div className="mb-2">
                     <label className="form-label">Variant Name *</label>
                     <input
@@ -408,8 +409,8 @@ function AddProduct() {
                 </div>
               ))}
 
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 className="btn btn-success mt-3"
                 disabled={loading}
               >

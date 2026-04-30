@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../../api/axios";
 import "../../App.css";
+import myLogo from '../../../public/assets/images/logos/logo3.png';
 
 
 
@@ -45,11 +46,11 @@ function Header() {
           </button>
         </div>
         <div>
-          <a className="navbar-brand brand-logo" href="">
+          {/* <a className="navbar-brand brand-logo" href="">
             <img src="" alt="" />
-          </a>
+          </a> */}
           <a className="navbar-brand brand-logo-mini" href="">
-            <img src="" alt="logo" />
+            <img src="http://127.0.0.1:8000/assets/images/logos/logo3-Photoroom.png" alt="logo" />
           </a>
         </div>
       </div>

@@ -6,24 +6,38 @@ function AddCategory() {
     const [categoryName, setCategoryName] = useState("");
     const [description, setDescription] = useState("");
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
+  const handleSubmit = (e) => {
+    e.preventDefault();
 
-        axios.post("http://localhost:8000/api/categories", {
+    const token = localStorage.getItem("token");
+
+    axios.post(
+        "http://127.0.0.1:8000/api/categories",
+        {
             category_name: categoryName,
             description: description,
-        })
-        .then((res) => {
-            alert(res.data.message);
-            // Reset form
-            setCategoryName("");
-            setDescription("");
-        })
-        .catch((err) => {
-            console.error(err);
-            alert("Failed to add category!");
-        });
-    };
+        },
+        {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        }
+    )
+    .then((res) => {
+        alert(res.data.message || "Category added successfully");
+
+        setCategoryName("");
+        setDescription("");
+    })
+    .catch((err) => {
+        console.log("ERROR:", err.response?.data);
+
+        alert(
+            err.response?.data?.message ||
+            "Failed to add category (unauthorized or validation error)"
+        );
+    });
+};
 
     return (
         <Layout>

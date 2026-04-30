@@ -17,15 +17,17 @@ function Login() {
     });
   };
 
- const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
   e.preventDefault();
 
   try {
- API.post("/auth/login", formData);
+    const res = await API.post("/login", formData); // ✅ FIXED
 
     console.log(res.data);
 
+    // ✅ store token + user
     localStorage.setItem("token", res.data.token);
+    localStorage.setItem("user", JSON.stringify(res.data.user));
 
     alert("Login successful!");
     navigate("/dashboard");
@@ -43,8 +45,8 @@ function Login() {
   }
 };
 
-localStorage.setItem("token", res.data.token);
-localStorage.setItem("user", JSON.stringify(res.data.user));
+// localStorage.setItem("token", res.data.token);
+// localStorage.setItem("user", JSON.stringify(res.data.user));
 
   return (
     <div className="d-flex align-items-center justify-content-center vh-100 bg-light">

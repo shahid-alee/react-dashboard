@@ -1,75 +1,84 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Layout from "../../layout/Layout";
-import axios from "axios";
+import API from "../../../api/axios";
 
 function EditCategory() {
     const { id } = useParams();
     const navigate = useNavigate();
+
     const [categoryName, setCategoryName] = useState("");
     const [description, setDescription] = useState("");
+    const [loading, setLoading] = useState(false);
 
+    // Fetch category
     useEffect(() => {
-        axios.get(`http://localhost:8000/api/categories/${id}`)
-            .then(res => {
+        setLoading(true);
+
+        API.get(`/categories/${id}`)
+            .then((res) => {
                 setCategoryName(res.data.category_name);
-                setDescription(res.data.description);
+                setDescription(res.data.description || "");
             })
-            .catch(err => console.error(err));
+            .catch(() => {
+                alert("Failed to fetch category");
+            })
+            .finally(() => setLoading(false));
     }, [id]);
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        axios.put(`http://localhost:8000/api/categories/${id}`, {
+
+        API.put(`/categories/${id}`, {
             category_name: categoryName,
-            description: description
+            description: description,
         })
-        .then(res => {
-            alert(res.data.message);
-            navigate("/category"); // redirect to category table
-        })
-        .catch(err => {
-            console.error(err);
-            alert("Failed to update category!");
-        });
+            .then((res) => {
+                alert(res.data.message);
+                navigate("/category");
+            })
+            .catch((err) => {
+                console.error(err.response?.data || err.message);
+                alert("Update failed");
+            });
     };
+
+    if (loading) return <Layout>Loading...</Layout>;
 
     return (
         <Layout>
             <div className="content-wrapper">
-                <div className="row">
-                    <div className="col-md-6 grid-margin stretch-card" style={{ width: "80%", margin: "0 auto" }}>
-                        <div className="card">
-                            <div className="card-body">
-                                <h4 className="card-title">Edit Category</h4>
-                                <form onSubmit={handleSubmit}>
-                                    <div className="form-group" style={{ marginBottom: "15px" }}>
-                                        <label>Category Name</label>
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            value={categoryName}
-                                            onChange={(e) => setCategoryName(e.target.value)}
-                                            required
-                                        />
-                                    </div>
-                                    <div className="form-group">
-                                        <label>Description</label>
-                                        <textarea
-                                            className="form-control"
-                                            value={description}
-                                            onChange={(e) => setDescription(e.target.value)}
-                                            style={{ height: "150px" }}
-                                        ></textarea>
-                                    </div>
-                                    <div style={{ textAlign: "right" }}>
-                                        <button type="submit" className="btn btn-primary">
-                                            Update Category
-                                        </button>
-                                    </div>
-                                </form>
+                <div className="card">
+                    <div className="card-body">
+
+                        <h4>Edit Category</h4>
+
+                        <form onSubmit={handleSubmit}>
+                            <div className="mb-3">
+                                <label>Category Name</label>
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    value={categoryName}
+                                    onChange={(e) => setCategoryName(e.target.value)}
+                                    required
+                                />
                             </div>
-                        </div>
+
+                            <div className="mb-3">
+                                <label>Description</label>
+                                <textarea
+                                    className="form-control"
+                                    value={description}
+                                    onChange={(e) => setDescription(e.target.value)}
+                                />
+                            </div>
+
+                            <button className="btn btn-success">
+                                Update Category
+                            </button>
+                        </form>
+
                     </div>
                 </div>
             </div>

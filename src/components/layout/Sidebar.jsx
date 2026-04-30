@@ -8,7 +8,7 @@ function Sidebar() {
     <nav className="sidebar sidebar-offcanvas" id="sidebar">
       <ul className="nav">
         <li className="nav-item">
-          <a className="nav-link" href="">
+          <a className="nav-link" href="#">
             <i className="mdi mdi-grid-large menu-icon"></i>
             <Link className="nav-link" to="/">Dashboard</Link>
           </a>

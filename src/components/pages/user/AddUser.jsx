@@ -20,55 +20,56 @@ function AddUser() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    axios
-      .post("http://127.0.0.1:8000/api/users/store", formData)
-      .then((res) => {
-        alert("User Added Successfully");
-        setFormData({
-          name: "",
-          email: "",
-          password: "",
-          role: "user",
-        });
-        console.log(res.data);
-      })
-      .catch((err) => {
-        if (err.response) {
-          if (err.response.status === 422) {
-            const errors = err.response.data.errors;
-            const messages = Object.values(errors).flat();
-            alert("Validation Error:\n" + messages.join("\n"));
-          } else {
-            alert(
-              "Error: " + (err.response.data.message || "Something went wrong")
-            );
-          }
-        } else {
-          alert("Network Error: Could not connect to server");
-        }
-        console.error("Error adding user:", err.response?.data || err);
+    const token = localStorage.getItem("token");
+
+    axios.post(
+      "http://127.0.0.1:8000/api/users/store",
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    )
+    .then((res) => {
+      alert("User Added Successfully");
+
+      setFormData({
+        name: "",
+        email: "",
+        password: "",
+        role: "user",
       });
+
+      console.log(res.data);
+    })
+    .catch((err) => {
+      console.log("ERROR:", err.response?.data);
+
+      if (err.response?.status === 422) {
+        const errors = err.response.data.errors;
+        const messages = Object.values(errors).flat();
+        alert(messages.join("\n"));
+      } else {
+        alert(err.response?.data?.message || "Error adding user");
+      }
+    });
   };
 
   return (
     <Layout>
       <div className="content-wrapper">
         <div className="row">
-          <div
-            className="col-md-6 grid-margin stretch-card"
-            style={{ width: "80%", margin: "0 auto" }}
-          >
+          <div className="col-md-6 grid-margin stretch-card" style={{ width: "80%", margin: "0 auto" }}>
             <div className="card">
               <div className="card-body">
                 <h4 className="card-title">Add New User</h4>
 
                 <form onSubmit={handleSubmit}>
-                  
+
                   {/* Name */}
                   <div className="form-group row mb-3">
-                    <label className="col-md-3 col-form-label">
-                      User Name
-                    </label>
+                    <label className="col-md-3 col-form-label">User Name</label>
                     <div className="col-md-9">
                       <input
                         type="text"
@@ -83,9 +84,7 @@ function AddUser() {
 
                   {/* Email */}
                   <div className="form-group row mb-3">
-                    <label className="col-md-3 col-form-label">
-                      Email
-                    </label>
+                    <label className="col-md-3 col-form-label">Email</label>
                     <div className="col-md-9">
                       <input
                         type="email"
@@ -100,9 +99,7 @@ function AddUser() {
 
                   {/* Password */}
                   <div className="form-group row mb-3">
-                    <label className="col-md-3 col-form-label">
-                      Password
-                    </label>
+                    <label className="col-md-3 col-form-label">Password</label>
                     <div className="col-md-9">
                       <input
                         type="password"
@@ -117,9 +114,7 @@ function AddUser() {
 
                   {/* Role */}
                   <div className="form-group row mb-3">
-                    <label className="col-md-3 col-form-label">
-                      Role
-                    </label>
+                    <label className="col-md-3 col-form-label">Role</label>
                     <div className="col-md-9">
                       <select
                         name="role"
