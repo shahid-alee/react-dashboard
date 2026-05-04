@@ -66,7 +66,7 @@ function EditProfile() {
         <Layout>
             <div className="container m-4">
                 <div className="card p-4 shadow" style={{ maxWidth: "900px" }}>
-                    <h4>Edit Profile</h4>
+                    <h3 className="mb-4">Edit Profile</h3>
 
                     <form onSubmit={handleSubmit}>
 

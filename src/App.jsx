@@ -9,6 +9,8 @@ import Category from "./components/pages/category/CategoryList";
 import Subcategory from "./components/pages/subcategory/SubcategoryList";
 import AddSubcategory from "./components/pages/subcategory/AddSubcategory";
 import Orders from "./components/pages/order/Order";
+import OrderView from "./components/pages/order/OrderView";
+import OrderEdit from "./components/pages/order/OrderEdit";
 import EditUser from "./components/pages/user/EditUser";
 import EditCategory from "./components/pages/category/EditCategory";
 import EditSubcategory from "./components/pages/subcategory/EditSubcategory";
@@ -38,6 +40,10 @@ function App() {
         <Route path="/subcategory" element={<Subcategory />} />
         <Route path="/edit-subcategory/:id" element={<EditSubcategory />} />
         <Route path="/orders" element={<Orders />} />
+        <Route path="/order/:id" element={<OrderView />} />
+        <Route path="/order-edit/:id" element={<OrderEdit />} />
+
+
       </Routes>
     </Router>
   );

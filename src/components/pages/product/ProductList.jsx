@@ -7,28 +7,33 @@ function Product() {
     const [products, setProducts] = useState([]);
     const navigate = useNavigate();
 
-    const fetchProducts = async () => {
-        try {
-            const token = localStorage.getItem("token");
-
-            const res = await axios.get(
-                "http://127.0.0.1:8000/api/products",
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
-
-            console.log("API RESPONSE:", res.data);
-
-            setProducts(res.data.data); 
-        } catch (error) {
-            console.log("ERROR:", error.response?.data || error.message);
-        }
-
-        // console.log(products);
-    };
+   const fetchProducts = async () => {
+    try {
+        const token = localStorage.getItem("token");
+        
+        const res = await axios.get(
+            "http://127.0.0.1:8000/api/products",
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                },
+            }
+        );
+        
+        setProducts(res.data.data);
+        
+    } catch (error) {
+        console.log("ERROR STATUS:", error.response?.status);
+        console.log("ERROR DATA:", error.response?.data);
+        console.log("ERROR MESSAGE:", error.response?.data?.message);
+        console.log("FULL ERROR:", error.response?.data);
+        
+        // Show error to user
+        alert(`Error: ${error.response?.data?.message || error.message}`);
+    }
+};
 
 
     useEffect(() => {
@@ -56,7 +61,6 @@ function Product() {
         }
     };
 
-
     return (
         <Layout>
             <div className="content-wrapper">
@@ -77,8 +81,8 @@ function Product() {
                             <thead>
                                 <tr>
                                     <th>ID</th>
-                                    <th>product Image</th>
-                                    <th>Product Name</th>
+                                    <th>Image</th>
+                                    <th>Name</th>
                                     <th>Category</th>
                                     <th>Sub Category</th>
                                     <th>Price</th>
@@ -92,6 +96,7 @@ function Product() {
                                     products.map((p) => (
                                         <tr key={p.id}>
                                             <td>{p.id}</td>
+
                                             <td>
                                                 {p.image && p.image.length > 0 ? (
                                                     <img
@@ -99,21 +104,39 @@ function Product() {
                                                         alt={p.product_name}
                                                         width="50"
                                                         height="50"
-                                                        style={{ objectFit: "cover", borderRadius: "5px" }}
+                                                        style={{
+                                                            objectFit: "cover",
+                                                            borderRadius: "5px"
+                                                        }}
                                                     />
                                                 ) : (
                                                     "No Image"
                                                 )}
                                             </td>
+
                                             <td>{p.product_name}</td>
-                                            <td>{p.category?.category_name || "N/A"}</td>
-                                            <td>{p.subcategory?.sub_category_name || "N/A"}</td>
+
+                                            <td>
+                                                {p.category
+                                                    ? p.category.category_name
+                                                    : "N/A"}
+                                            </td>
+
+                                            <td>
+                                                {p.subcategory
+                                                    ? p.subcategory.sub_category_name
+                                                    : "N/A"}
+                                            </td>
+
                                             <td>Rs {p.price}</td>
                                             <td>{p.quantity}</td>
+
                                             <td>
                                                 <button
                                                     className="btn btn-info btn-sm me-2"
-                                                    onClick={() => navigate(`/edit-product/${p.id}`)}
+                                                    onClick={() =>
+                                                        navigate(`/edit-product/${p.id}`)
+                                                    }
                                                 >
                                                     Edit
                                                 </button>

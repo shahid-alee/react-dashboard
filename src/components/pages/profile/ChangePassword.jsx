@@ -49,7 +49,7 @@ function ChangePassword() {
         <Layout>
             <div className="container m-4">
                 <div className="card p-4 shadow" style={{ maxWidth: "900px" }}>
-                    <h4 className="mb-2">Change Password</h4>
+                    <h3 className="mb-4">Change Password</h3>
 
                     <form onSubmit={handleSubmit}>
 
@@ -109,7 +109,8 @@ function ChangePassword() {
 
                         {/* BUTTON */}
                         <div className="row">
-                            <div className="col-md-12">
+                            <div className="col-md-4"></div>
+                            <div className="col-md-8">
                                 <button className="btn btn-warning w-100">
                                     Update Password
                                 </button>

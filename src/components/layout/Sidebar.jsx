@@ -10,7 +10,7 @@ function Sidebar() {
         <li className="nav-item">
           <a className="nav-link" href="#">
             <i className="mdi mdi-grid-large menu-icon"></i>
-            <Link className="nav-link" to="/">Dashboard</Link>
+            <Link className="nav-link" to="#">Dashboard</Link>
           </a>
         </li>
         <li className="nav-item nav-category">UI Elements</li>
